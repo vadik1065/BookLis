@@ -10,20 +10,32 @@ const BookReader: React.FC = () => {
 
   const handleFileRead = (file?: File) => {
     const reader: Book = Epub("/static/filesBook/Leto-v-pionerskom-galstuke.epub");
+    // const reader: Book = Epub("/static/filesBook/Попытка-к-бегству.fb2");
     const rendition: Rendition = reader.renderTo("area-for-book", {
       width: AREA_WIDTH,
       height: AREA_HEIGHT,
+      // flow: "scrolled-doc",
     });
 
     rendition.on("displayed", (event) => {
       let start = null;
       let end = null;
       const el = event.document.documentElement;
-
-      console.log(el.getBoundingClientRect());
+      let quicklyTabFlug: boolean;
+      let quicklyTabID;
 
       rendition.on("touchstart", (event) => {
         start = event.changedTouches[0];
+
+        if (quicklyTabFlug) {
+          start.screenX > 0.5 * AREA_WIDTH ? currentBook.nextPage() : currentBook.prevPage();
+          clearTimeout(quicklyTabID);
+        }
+
+        quicklyTabFlug = true;
+        quicklyTabID = setTimeout(() => {
+          quicklyTabFlug = false;
+        }, 300);
       });
       rendition.on("touchend", (event) => {
         end = event.changedTouches[0];
